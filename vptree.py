@@ -1,4 +1,7 @@
 """ This module contains an implementation of a Vantage Point-tree (VP-tree)."""
+
+from heapq import heappush, nlargest, nsmallest
+
 import numpy as np
 
 
@@ -75,7 +78,7 @@ class VPTree:
 
     def get_nearest_neighbor(self, query):
         """ Get single nearest neighbor.
-        
+
         Parameters
         ----------
         query : Any
@@ -90,7 +93,7 @@ class VPTree:
 
     def get_n_nearest_neighbors(self, query, n_neighbors):
         """ Get `n_neighbors` nearest neigbors to `query`
-        
+
         Parameters
         ----------
         query : Any
@@ -105,7 +108,9 @@ class VPTree:
         """
         if not isinstance(n_neighbors, int) or n_neighbors < 1:
             raise ValueError('n_neighbors must be strictly positive integer')
-        neighbors = _AutoSortingList(max_size=n_neighbors)
+
+        neighbors = PriorityQueue()
+
         nodes_to_visit = [(self, 0)]
 
         furthest_d = np.inf
@@ -117,8 +122,9 @@ class VPTree:
 
             d = self.dist_fn(query, node.vp)
             if d < furthest_d:
-                neighbors.append((d, node.vp))
-                furthest_d, _ = neighbors[-1]
+
+                neighbors.push((d, node.vp))
+                furthest_d, _ = neighbors.get_furthest_point()
 
             if node._is_leaf():
                 continue
@@ -137,7 +143,7 @@ class VPTree:
                                        node.right_min - d if d < node.right_min
                                        else d - node.right_max))
 
-        return list(neighbors)
+        return neighbors.nearest_neighbors(n_neighbors)
 
     def get_all_in_range(self, query, max_distance):
         """ Find all neighbours within `max_distance`.
@@ -188,6 +194,21 @@ class VPTree:
                                        else d - node.right_max))
 
         return neighbors
+
+
+class PriorityQueue():
+
+    def __init__(self):
+        self._heap = []
+
+    def push(self, item):
+        heappush(self._heap, item)
+
+    def get_furthest_point(self):
+        return nlargest(1, self._heap)[0]
+
+    def nearest_neighbors(self, k):
+        return nsmallest(k, self._heap)
 
 
 class _AutoSortingList(list):
