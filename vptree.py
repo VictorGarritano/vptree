@@ -209,35 +209,3 @@ class PriorityQueue():
 
     def nearest_neighbors(self, k):
         return nsmallest(k, self._heap)
-
-
-class _AutoSortingList(list):
-
-    """ Simple auto-sorting list.
-
-    Inefficient for large sizes since the queue is sorted at
-    each push.
-
-    Parameters
-    ---------
-    size : int, optional
-        Max queue size.
-    """
-
-    def __init__(self, max_size=None, *args):
-        super(_AutoSortingList, self).__init__(*args)
-        self.max_size = max_size
-
-    def append(self, item):
-        """ Append `item` and sort.
-
-        Parameters
-        ----------
-        item : Any
-            Input item.
-        """
-        super(_AutoSortingList, self).append(item)
-        self.sort(key=lambda x: x[0])
-        if self.max_size is not None and len(self) > self.max_size:
-            self.pop()
-
